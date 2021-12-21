@@ -1,10 +1,107 @@
+hangman = (
+
+"""
+   _________
+    |/        
+    |              
+    |                
+    |                 
+    |               
+    |                   
+    |___                 
+    """,
+
+"""
+   _________
+    |/   |      
+    |              
+    |                
+    |                 
+    |               
+    |                   
+    |___                 
+    H""",
+
+"""
+   _________       
+    |/   |              
+    |   (_)
+    |                         
+    |                       
+    |                         
+    |                          
+    |___                       
+    HA""",
+
+"""
+   ________               
+    |/   |                   
+    |   (_)                  
+    |    |                     
+    |    |                    
+    |                           
+    |                            
+    |___                    
+    HAN""",
+
+
+"""
+   _________             
+    |/   |               
+    |   (_)                   
+    |   /|                     
+    |    |                    
+    |                        
+    |                          
+    |___                          
+    HANG""",
+
+
+"""
+   _________              
+    |/   |                     
+    |   (_)                     
+    |   /|\                    
+    |    |                       
+    |                             
+    |                            
+    |___                          
+    HANGM""",
+
+
+
+"""
+   ________                   
+    |/   |                         
+    |   (_)                      
+    |   /|\                             
+    |    |                          
+    |   /                            
+    |                                  
+    |___                              
+    HANGMA""",
+
+
+"""
+   ________
+    |/   |     
+    |   (_)    
+    |   /|\           
+    |    |        
+    |   / \        
+    |               
+    |___           
+    HANGMAN""")
+
 # STEP 1
 # display a menu with at least 3 difficulty choices and ask the user
 # to select the desired level
-difficulty = "1" # sample data, normally the user should choose the difficulty
+#difficulty = "1" sample data, normally the user should choose the difficulty
 def ask_level():
+    levels = 4
     level = input("Please choose one of the following levels: 1 2 3 4!")
-    if level in ["1", "2", "3", "4"]:
+    # generator
+    if level in (str(x) for x in range(1, levels)):
         return int(level)
     else:
         return f"The chosen {level} level is not available!"
@@ -14,14 +111,15 @@ def ask_level():
 # STEP 2
 # based on the chosen difficulty level, set the values 
 # for the player's lives
+# choose random <- select length lists (by difficulty)
 def set_difficulty(level):
     if level == 1:
         word_to_guess = "Cairo" # sample data, normally the word should be chosen from the countries-and-capitals.txtlives = 5 # sample data, normally the lives should be chosen based on the difficulty
         lives = 10
-    if level == 2:
+    elif level == 2:
         word_to_guess = "Budapest"
         lives = 8
-    if level == 3:
+    elif level == 3:
         word_to_guess = "Albuquerque"
         lives = 7
     else:
@@ -69,42 +167,59 @@ def ask_a_letter():
 # HINT: search on the internet: `python if letter in list`
 # If it is not, than append to the tried letters
 # If it has already been typed, return to STEP 5. HINT: use a while loop here
-def tried_letters():
-    already_tried_letters = [] # this list will contain all the tried letters
-    while True:
-        guess = ask_a_letter()
-        if guess in already_tried_letters:
-            print('You already tried this letter, try again.')
-        else:
-            already_tried_letters.append(guess)
-            return already_tried_letters
+def tried_letters(letter, already_tried_letters):
+    if letter in already_tried_letters:
+        print('You already tried this letter, try again.')
+        return already_tried_letters
+    else:
+        already_tried_letters.add(letter)
+        return already_tried_letters
 
 
 
-# STEP 6
+# STEP 6ters(letter, word_to_guess, lives, already_tried_letters, hangman)
 # if the letter is present in the word iterate through all the letters in the variable
 # word_to_guess. If that letter is present in the already_tried_letters then display it,
 # otherwise display "_".
-def present_letters(letter, word_to_guess, lives):
-    secret_word = underlines(word_to_guess)
-    word_to_guess = " ".join(word_to_guess)
-    if already_tried_letters(letter) == False:
-        if letter in word_to_guess:
-            for index in range(len(word_to_guess)):
-                if letter == word_to_guess[index]:
-                    secret_word[index] = letter
-            return secret_word
-        else:
-            lives -= 1
-            return (lives, secret_word, hangman)
+def present_letters(letter, word_to_guess, already_tried_letters, lives, current_state):
+    low_word = word_to_guess.lower()
+    tried_valid = set(low_word).intersection(already_tried_letters)
+    if letter in low_word:
+        for i in range(len(word_to_guess)):
+            if low_word[i] in tried_valid:
+                 current_state += word_to_guess[i] + ' '
+            else:
+                current_state += '_ ' #kiszervezni fgvbe
     else:
-        already_tried_letters(letter)
-        return secret_word
+        print('The letter is not present in the word!')
+        lives -= 1
+        print(current_state, "#####################")
+
+    print(current_state)
+
+# def present_letters(letter, word_to_guess, lives, already_tried_letters, hangman):
+#     indexes = []
+#     spaced_word_to_guess = " ".join(word_to_guess)
+#     for index in range(len(spaced_word_to_guess)):
+#         if letter == spaced_word_to_guess[index]:
+#             indexes.append(index)
+#     printed_word = underlines(word_to_guess)
+#     printed_word = list(printed_word)
+#     for position in indexes:
+#         printed_word[position] = letter
+#     printed_word = ''.join(printed_word)
+#     return printed_word
+
 
 # if the letter is not present in the word decrease the value in the lives variable
 # and display a hangman ASCII art. You can search the Internet for "hangman ASCII art",
 # or draw a new beautiful one on your own.
 
+def print_hearts(lives):
+    hearts = ''
+    for i in range(lives):
+        hearts = hearts + "♥ "
+    print(hearts)
 
 
 # STEP 7
@@ -116,6 +231,23 @@ def present_letters(letter, word_to_guess, lives):
 # If neither of the 2 conditions mentioned above go back to STEP 4
 def hangman_controller():
     print('Welcome to Kiakasztó.')
+    already_tried_letters = set() # this list will contain all the tried letters
+    current_state = ''
     while True:
         level = ask_level()
-        set_difficulty(level)
+        #print(level)
+        word_to_guess = set_difficulty(level)[0]
+        lives = set_difficulty(level)[1]
+        print(word_to_guess)
+        print(underlines(word_to_guess))
+        while lives >= 0:
+            letter = ask_a_letter()
+            already_tried_letters = tried_letters(letter, already_tried_letters)
+            if already_tried_letters == 'You already tried this letter, try again.':
+                lives -= 1
+            present_letters(letter, word_to_guess, already_tried_letters, lives, current_state)
+
+            
+            print_hearts(lives)
+    #output = ''
+hangman_controller()
