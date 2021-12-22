@@ -1,97 +1,10 @@
-hangman = (
+def get_ascii_arts(file='hangman_ascii.txt'):
+    arts = []
+    with open(file) as art:
+        arts = art.readlines()
+    art_phases = [arts[art_index:art_index+9] for art_index in range(0, len(arts), 9)]
+    return art_phases   
 
-"""
-   _________
-    |/        
-    |              
-    |                
-    |                 
-    |               
-    |                   
-    |___                 
-    """,
-
-"""
-   _________
-    |/   |      
-    |              
-    |                
-    |                 
-    |               
-    |                   
-    |___                 
-    H""",
-
-"""
-   _________       
-    |/   |              
-    |   (_)
-    |                         
-    |                       
-    |                         
-    |                          
-    |___                       
-    HA""",
-
-"""
-   ________               
-    |/   |                   
-    |   (_)                  
-    |    |                     
-    |    |                    
-    |                           
-    |                            
-    |___                    
-    HAN""",
-
-
-"""
-   _________             
-    |/   |               
-    |   (_)                   
-    |   /|                     
-    |    |                    
-    |                        
-    |                          
-    |___                          
-    HANG""",
-
-
-"""
-   _________              
-    |/   |                     
-    |   (_)                     
-    |   /|\                    
-    |    |                       
-    |                             
-    |                            
-    |___                          
-    HANGM""",
-
-
-
-"""
-   ________                   
-    |/   |                         
-    |   (_)                      
-    |   /|\                             
-    |    |                          
-    |   /                            
-    |                                  
-    |___                              
-    HANGMA""",
-
-
-"""
-   ________
-    |/   |     
-    |   (_)    
-    |   /|\           
-    |    |        
-    |   / \        
-    |               
-    |___           
-    HANGMAN""")
 
 # STEP 1
 # display a menu with at least 3 difficulty choices and ask the user
@@ -115,16 +28,16 @@ def ask_level():
 def set_difficulty(level):
     if level == 1:
         word_to_guess = "Cairo" # sample data, normally the word should be chosen from the countries-and-capitals.txtlives = 5 # sample data, normally the lives should be chosen based on the difficulty
-        lives = 10
+        lives = 8
     elif level == 2:
         word_to_guess = "Budapest"
-        lives = 8
+        lives = 7
     elif level == 3:
         word_to_guess = "Albuquerque"
-        lives = 7
+        lives = 6
     else:
         word_to_guess = "Nyugotifelsőszombatfalva"
-        lives = 6
+        lives = 5
         
     return (word_to_guess, lives)
 
@@ -181,21 +94,26 @@ def tried_letters(letter, already_tried_letters):
 # if the letter is present in the word iterate through all the letters in the variable
 # word_to_guess. If that letter is present in the already_tried_letters then display it,
 # otherwise display "_".
-def present_letters(letter, word_to_guess, already_tried_letters, lives, current_state):
+def present_letters(letter, word_to_guess, already_tried_letters, current_state):
+    low_word = word_to_guess.lower()
+    if letter in low_word:
+        return print_word(word_to_guess, already_tried_letters, current_state)
+    else:        
+        print('The letter is not present in the word!')
+        return print_word(word_to_guess, already_tried_letters, current_state)
+
+
+
+def print_word(word_to_guess, already_tried_letters, current_state):
     low_word = word_to_guess.lower()
     tried_valid = set(low_word).intersection(already_tried_letters)
-    if letter in low_word:
-        for i in range(len(word_to_guess)):
+    for i in range(len(word_to_guess)):
             if low_word[i] in tried_valid:
                  current_state += word_to_guess[i] + ' '
             else:
-                current_state += '_ ' #kiszervezni fgvbe
-    else:
-        print('The letter is not present in the word!')
-        lives -= 1
-        print(current_state, "#####################")
-
+                current_state += '_ '
     print(current_state)
+    return tried_valid
 
 # def present_letters(letter, word_to_guess, lives, already_tried_letters, hangman):
 #     indexes = []
@@ -209,7 +127,7 @@ def present_letters(letter, word_to_guess, already_tried_letters, lives, current
 #         printed_word[position] = letter
 #     printed_word = ''.join(printed_word)
 #     return printed_word
-
+#('Please provide only one letter!')
 
 # if the letter is not present in the word decrease the value in the lives variable
 # and display a hangman ASCII art. You can search the Internet for "hangman ASCII art",
@@ -222,6 +140,14 @@ def print_hearts(lives):
     print(hearts)
 
 
+def win_check(word_to_guess, tried_valid):
+    low_word = word_to_guess.lower()
+    for i in range(len(low_word)):
+        if low_word[i] not in tried_valid:
+            return False
+    print('Congrats, you won! Please play again!')
+    return True
+
 # STEP 7
 # check if the variable already_tried_letters already contains all the letters necessary
 # to build the value in the variable word_to_guess. If so display a winning message and exit
@@ -231,23 +157,30 @@ def print_hearts(lives):
 # If neither of the 2 conditions mentioned above go back to STEP 4
 def hangman_controller():
     print('Welcome to Kiakasztó.')
-    already_tried_letters = set() # this list will contain all the tried letters
-    current_state = ''
     while True:
+        print("###################")
         level = ask_level()
-        #print(level)
         word_to_guess = set_difficulty(level)[0]
         lives = set_difficulty(level)[1]
-        print(word_to_guess)
+        win = False
+        current_state = ''
+        already_tried_letters = set()
+        tried = set()
         print(underlines(word_to_guess))
-        while lives >= 0:
+        while lives >= 0 or win == False:
+            print_hearts(lives)
             letter = ask_a_letter()
             already_tried_letters = tried_letters(letter, already_tried_letters)
-            if already_tried_letters == 'You already tried this letter, try again.':
+            tried_len = len(tried)
+            tried = present_letters(letter, word_to_guess, already_tried_letters, current_state)
+            tried_len2 = len(tried)
+            if tried_len == tried_len2:
                 lives -= 1
-            present_letters(letter, word_to_guess, already_tried_letters, lives, current_state)
-
+            print (''.join(get_ascii_arts()[lives]))       
+            win = win_check(word_to_guess, tried)
+            print(win)
             
-            print_hearts(lives)
-    #output = ''
+        if lives <= 0:
+            print('Game over! Play again!')
+
 hangman_controller()
