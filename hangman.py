@@ -1,4 +1,5 @@
 import random
+import os
 
 def read_file(file):
     l = []
@@ -23,12 +24,13 @@ def get_countries(file='countries-and-capitals.txt'):
 # to select the desired level
 #difficulty = "1" sample data, normally the user should choose the difficulty
 def ask_level():
-    levels = 4
+    levels = 5
     while True:
         level = input('''Please choose one of the following levels: 
-        1 - guess a country
-        2 - guess a capital 
+        1 - guess a country!
+        2 - guess a capital! 
         3 - guess a country with it's capital!
+        4 - guess a word provided by another player!
         ''')
         # generator
         if level.isnumeric():
@@ -37,36 +39,40 @@ def ask_level():
             else:
                 print(f"The chosen {level} level is not available!")
         else:
-            print('Please provide a number between 1-3!')
+            print('Please provide a number between 1-4!')
 
-    
+def multiplayer_word():
+    while True:
+        word_to_guess = input('Please provide a word!\n')
+        if not word_to_guess.isalpha(): # the program only accepts letters as input
+            print('Please provide letters only!')        
+        else:
+            os.system('cls' if os.name == 'nt' else 'clear') # we have to clear the screen to avoid spoilers :)          
+            return word_to_guess
 
-# STEP 2
-# based on the chosen difficulty level, set the values 
-# for the player's lives
-# choose random <- select length lists (by difficulty)
+
 def set_difficulty(level):
     lists = get_countries()
     index = random.randint(0, len(lists[0]))
-    if level == 1:
-        word_to_guess =  lists[0][index] # sample data, normally the word should be chosen from the countries-and-capitals.txtlives = 5 # sample data, normally the lives should be chosen based on the difficulty
+    if level == 1: # on level 1, player has to guess a country from countries-and-capitals.txt
+        word_to_guess = lists[0][index]
         lives = 8
-    elif level == 2:
+    elif level == 2: # on level 2, player has to guess a capital from countries-and-capitals.txt
         word_to_guess = lists[1][index]
         lives = 7
-    elif level == 3:
+    elif level == 3: # on level 3, player has to guess a country and it's capital from countries-and-capitals.txt
         word_to_guess = lists[0][index] + ' | ' + lists[1][index]
         lives = 6
+    elif level == 4: # on level 4, player has to guess a word provided by another player
+        word_to_guess = multiplayer_word()
+        lives = 7
         
     return (word_to_guess, lives)
 
 
-# STEP 3
-# display the chosen word to guess with all letters replaced by "_"
-# for example instead of "Cairo" ddef get     isplay "_ _ _ _ _"
-def underlines(word):
+def underlines(word_to_guess):
     secret_word = ''
-    for letter in word:
+    for letter in word_to_guess:
         if letter == ' ':
             secret_word = secret_word + letter
         elif letter == '-':
@@ -85,7 +91,7 @@ def underlines(word):
 # HINT: use the upper() or lower() built-in Python functions
 def ask_a_letter():
     while True:
-        letter = input('Guess a letter!')
+        letter = input('Guess a letter!\n')
         letter_lowercase = letter.lower()
         if letter.isalpha():
             if letter_lowercase == 'quit':
@@ -182,8 +188,12 @@ def hangman_controller():
     print(ascii_start_hangman)
     while True:
         level = ask_level()
+        os.system('cls' if os.name == 'nt' else 'clear')
         word_to_guess = set_difficulty(level)[0]
-        lives = set_difficulty(level)[1]
+        if level == 4:
+            lives = 7
+        else:
+            lives = set_difficulty(level)[1]      
         win = False
         current_state = ''
         already_tried_letters = set()
@@ -205,5 +215,3 @@ def hangman_controller():
             print(f'{ascii_game_over}\n The word was: {word_to_guess} \n Try again! \n')
 
 hangman_controller()
-
-
